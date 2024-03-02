@@ -4,12 +4,16 @@ package com.example.tomtom
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import com.example.tomtom.BuildConfig.TOMTOM_API_KEY
 import com.example.tomtom.databinding.ActivityMainBinding
+import com.example.tomtom.viewmodel.MainViewModel
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStore
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStoreConfiguration
 import com.tomtom.sdk.location.GeoLocation
@@ -67,9 +71,12 @@ import javax.inject.Inject
  * For more details on this example, check out the tutorial: https://developer.tomtom.com/android/navigation/documentation/tutorials/navigation-use-case
  **/
 
+private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
     @Inject
-    lateinit var exampleString: String
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private val viewModel by viewModels<MainViewModel> { viewModelFactory }
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var mapFragment: MapFragment
@@ -93,8 +100,11 @@ class MainActivity : AppCompatActivity() {
         initMap()
         (application as MainApplication).appComponent.inject(this)
 
+        viewModel.location.observe(this) {
+            Log.d(TAG, "onCreate: location: $it")
+        }
+
         // Use the injected dependency
-        println(exampleString)
 //        initNavigationTileStore()
 //        initRouting()
 //        initNavigation()
@@ -190,6 +200,7 @@ class MainActivity : AppCompatActivity() {
         onLocationUpdateListener = OnLocationUpdateListener { location ->
             tomTomMap.moveCamera(CameraOptions(location.position, zoom = 8.0))
             locationProvider.removeOnLocationUpdateListener(onLocationUpdateListener)
+            viewModel.updateLocation(location)
         }
         locationProvider.addOnLocationUpdateListener(onLocationUpdateListener)
         tomTomMap.setLocationProvider(locationProvider)
