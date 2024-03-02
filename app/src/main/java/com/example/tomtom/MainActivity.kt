@@ -56,6 +56,7 @@ import com.tomtom.sdk.routing.online.OnlineRoutePlanner
 import com.tomtom.sdk.routing.route.Route
 import com.tomtom.sdk.vehicle.Vehicle
 import com.tomtom.sdk.vehicle.VehicleProviderFactory
+import javax.inject.Inject
 
 /**
  * This example shows how to build a simple navigation application using the TomTom Navigation SDK for Android.
@@ -67,6 +68,9 @@ import com.tomtom.sdk.vehicle.VehicleProviderFactory
  **/
 
 class MainActivity : AppCompatActivity() {
+    @Inject
+    lateinit var exampleString: String
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var mapFragment: MapFragment
     private lateinit var tomTomMap: TomTomMap
@@ -87,6 +91,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         initLocationProvider()
         initMap()
+        (application as MainApplication).appComponent.inject(this)
+
+        // Use the injected dependency
+        println(exampleString)
 //        initNavigationTileStore()
 //        initRouting()
 //        initNavigation()
