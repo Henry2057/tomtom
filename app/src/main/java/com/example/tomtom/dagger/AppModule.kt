@@ -25,12 +25,6 @@ class AppModule(private val application: Application) {
 
     @Singleton
     @Provides
-    fun provideRoutePlanner(context: Context, apiKey: String): RoutePlanner {
-        return OnlineRoutePlanner.create(context, apiKey)
-    }
-
-    @Singleton
-    @Provides
     fun provideNavigationRepository(routePlanner: RoutePlanner): NavigationRepository {
         return NavigationRepository(routePlanner)
     }
