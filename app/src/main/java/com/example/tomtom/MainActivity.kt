@@ -96,9 +96,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        (application as MainApplication).appComponent.inject(this)
         initLocationProvider()
         initMap()
-        (application as MainApplication).appComponent.inject(this)
 
         viewModel.location.observe(this) {
             Log.d(TAG, "onCreate: location: $it")
@@ -120,6 +120,8 @@ class MainActivity : AppCompatActivity() {
     private fun initMap() {
         val mapOptions = MapOptions(mapKey = apiKey)
         mapFragment = MapFragment.newInstance(mapOptions)
+
+        viewModel.initMap(mapFragment) {}
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.map_container, mapFragment)

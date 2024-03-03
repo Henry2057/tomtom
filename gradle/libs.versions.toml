@@ -23,6 +23,9 @@ defaultMap = { module = "com.tomtom.sdk.datamanagement.nds:default-world-map", v
 navigationOnline = { module = "com.tomtom.sdk.navigation:navigation-online", version.ref = "tomtom_sdk" }
 routePlannerOnline = { module = "com.tomtom.sdk.routing:route-planner-online", version.ref = "tomtom_sdk" }
 routeReplannerOnline = { module = "com.tomtom.sdk.navigation:route-replanner-online", version.ref = "tomtom_sdk" }
+searchUi = { module = "com.tomtom.sdk.search:ui", version.ref = "tomtom_sdk" }
+searchOnline = { module = "com.tomtom.sdk.search:search-online", version.ref = "tomtom_sdk" }
+
 
 [bundles]
 androidCommon = ["androidXCompat", "androidXConstraintLayout"]

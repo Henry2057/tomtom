@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.example.tomtom.BuildConfig.TOMTOM_API_KEY
 import com.example.tomtom.MainApplication
+import com.example.tomtom.repo.MapRepository
 import com.example.tomtom.repo.NavigationRepository
 import com.tomtom.sdk.routing.RoutePlanner
 import com.tomtom.sdk.routing.online.OnlineRoutePlanner
@@ -33,4 +34,8 @@ class AppModule(private val application: Application) {
     fun provideNavigationRepository(routePlanner: RoutePlanner): NavigationRepository {
         return NavigationRepository(routePlanner)
     }
+
+    @Singleton
+    @Provides
+    fun provideMapRepository(context: Context): MapRepository = MapRepository(context)
 }
