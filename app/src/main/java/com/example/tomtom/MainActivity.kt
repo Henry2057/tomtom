@@ -64,17 +64,26 @@ import javax.inject.Inject
 
 private const val ZOOM_TO_ROUTE_PADDING = 100
 private val TAG = MainActivity::class.simpleName
+
 class MainActivity : AppCompatActivity() {
-    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
     private val viewModel by viewModels<MainViewModel> { viewModelFactory }
 
-    @Inject lateinit var mapFragmentFactory: MapFragmentFactory
-    @Inject lateinit var searchFragmentFactory: SearchFragmentFactory
-    @Inject lateinit var navigationFragmentFactory: NavigationFragmentFactory
-    @Inject lateinit var tomTomNavigation: TomTomNavigation
-    @Inject lateinit var navigationTileStore: NavigationTileStore
-    @Inject lateinit var locationProvider: LocationProvider
-    @Inject lateinit var routePlanner: RoutePlanner
+    @Inject
+    lateinit var mapFragmentFactory: MapFragmentFactory
+    @Inject
+    lateinit var searchFragmentFactory: SearchFragmentFactory
+    @Inject
+    lateinit var navigationFragmentFactory: NavigationFragmentFactory
+    @Inject
+    lateinit var tomTomNavigation: TomTomNavigation
+    @Inject
+    lateinit var navigationTileStore: NavigationTileStore
+    @Inject
+    lateinit var locationProvider: LocationProvider
+    @Inject
+    lateinit var routePlanner: RoutePlanner
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var tomTomMap: TomTomMap
@@ -93,6 +102,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         (application as MainApplication).appComponent.inject(this)
         initMap()
+    }
+
+    private fun initMap() {
+        mapFragment = mapFragmentFactory.create()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.map_container, mapFragment)
+            .commit()
+
+        mapFragment.getMapAsync { map ->
+            tomTomMap = map
+            enableUserLocation()
+            setUpMapListeners()
+            map.currentLocation?.let { initSearch(it.position) }
+        }
     }
 
     private fun initSearch(position: GeoPoint) {
@@ -131,21 +155,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initMap() {
-        mapFragment = mapFragmentFactory.create()
-
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.map_container, mapFragment)
-            .commit()
-
-        mapFragment.getMapAsync { map ->
-            tomTomMap = map
-            enableUserLocation()
-            setUpMapListeners()
-            map.currentLocation?.let { initSearch(it.position) }
-        }
-    }
-
     private fun enableUserLocation() {
         if (PermissionUtils.hasLocationPermissions(this)) {
             showUserLocation()
@@ -167,14 +176,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUpMapListeners() {
-        tomTomMap.addMapLongClickListener(mapLongClickListener)
         tomTomMap.addRouteClickListener(routeClickListener)
-    }
-
-    private val mapLongClickListener = MapLongClickListener { geoPoint ->
-        clearMap()
-        calculateRouteTo(geoPoint)
-        true
     }
 
     private fun isNavigationRunning(): Boolean = tomTomNavigation.navigationSnapshot != null
