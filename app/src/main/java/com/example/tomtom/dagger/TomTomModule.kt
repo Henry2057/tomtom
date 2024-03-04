@@ -15,6 +15,7 @@ import com.tomtom.sdk.navigation.ui.NavigationFragment
 import com.tomtom.sdk.navigation.ui.NavigationUiOptions
 import com.tomtom.sdk.routing.RoutePlanner
 import com.tomtom.sdk.routing.online.OnlineRoutePlanner
+import com.tomtom.sdk.search.Search
 import com.tomtom.sdk.search.online.OnlineSearch
 import com.tomtom.sdk.search.ui.SearchFragment
 import com.tomtom.sdk.search.ui.model.SearchApiParameters
@@ -45,6 +46,11 @@ class TomTomModule {
     @Provides
     fun provideRoutePlanner(context: Context): RoutePlanner =
         OnlineRoutePlanner.create(context, BuildConfig.TOMTOM_API_KEY)
+
+    @Singleton
+    @Provides
+    fun provideOnlineSearch(context: Context): Search =
+        OnlineSearch.create(context, BuildConfig.TOMTOM_API_KEY)
 
     @Singleton
     @Provides

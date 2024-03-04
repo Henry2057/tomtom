@@ -1,43 +1,56 @@
 package com.example.tomtom.viewmodel
 
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.tomtom.repo.MapRepository
-import com.example.tomtom.repo.NavigationRepository
-import com.tomtom.sdk.location.GeoLocation
+import com.example.tomtom.manager.MapManager
+import com.example.tomtom.manager.NavigationManager
+import com.example.tomtom.manager.NavigationState
+import com.example.tomtom.manager.RoutingManager
+import com.example.tomtom.manager.SearchManager
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.TomTomMap
-import com.tomtom.sdk.map.display.route.Route
 import com.tomtom.sdk.map.display.ui.MapFragment
+import com.tomtom.sdk.navigation.ui.NavigationFragment
+import com.tomtom.sdk.routing.options.RoutePlanningOptions
+import com.tomtom.sdk.routing.route.Route
+import com.tomtom.sdk.search.ui.SearchFragment
+import com.tomtom.sdk.search.ui.model.PlaceDetails
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor(
-    private val navigationRepository: NavigationRepository,
-    private val mapRepository: MapRepository
+    private val mapManager: MapManager,
+    private val searchManager: SearchManager,
+    private val routingManager: RoutingManager,
+    private val navigationManager: NavigationManager,
 ) : ViewModel() {
 
-    private val _location = MutableLiveData<GeoLocation>()
-    private val _route = MutableLiveData<Route>()
+    val tomTomMap: TomTomMap? = mapManager.tomTomMap
 
-    val location: LiveData<GeoLocation> = _location
-    val route: LiveData<Route> = _route
+    val searchResults: LiveData<PlaceDetails> = searchManager.searchResults
 
-    fun initMap(mapFragment: MapFragment, onMapReady: (TomTomMap) -> Unit) {
-        mapRepository.initMap(mapFragment, onMapReady)
+    val currentRoute: LiveData<Route> = routingManager.currentRoute
+
+    val routePlanningOptions: LiveData<RoutePlanningOptions> = routingManager.routePlanningOptions
+
+    val navigationState: LiveData<NavigationState> = navigationManager.navigationState
+
+    fun initMap(mapFragment: MapFragment, onMapReady: (TomTomMap) -> Unit) = mapManager.initMap(mapFragment, onMapReady)
+
+    fun enableUserLocation(activity: FragmentActivity) = mapManager.enableUserLocation(activity)
+
+    fun initSearch(position: GeoPoint, fragment: SearchFragment) = searchManager.initSearch(position, fragment)
+
+    fun planRoute(origin: GeoPoint?, destination: GeoPoint) = routingManager.planRoute(origin, destination)
+
+    fun startNavigation(route: Route, navigationFragment: NavigationFragment) = navigationManager.startNavigation(route, navigationFragment )
+
+    fun stopNavigation() = navigationManager.stopNavigation()
+
+    fun close() {
+        mapManager.close()
+        searchManager.close()
+        routingManager.close()
+        navigationManager.close()
     }
-
-    fun initializeLocationProvider() {
-        // Initialize and start the location provider, update _location LiveData
-    }
-
-    fun planRoute(destination: GeoPoint) {
-        // Use the repository to plan a route, update _route LiveData
-    }
-
-    fun updateLocation(location: GeoLocation) {
-        _location.postValue(location)
-    }
-
-    // Add more functions for handling user actions and updating state
 }

@@ -1,4 +1,4 @@
-package com.example.tomtom.utils
+package com.example.tomtom.util
 
 import android.Manifest
 import android.content.Context
@@ -7,7 +7,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 
-object PermissionUtils {
+object PermissionUtil {
 
     private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
