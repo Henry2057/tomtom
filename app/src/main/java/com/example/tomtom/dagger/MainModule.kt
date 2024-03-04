@@ -1,7 +1,10 @@
 package com.example.tomtom.dagger
 
+import android.app.Application
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.tomtom.MainApplication
 import com.example.tomtom.manager.MapManager
 import com.example.tomtom.manager.MapManagerImpl
 import com.example.tomtom.manager.NavigationManager
@@ -24,7 +27,7 @@ import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module
-class MainModule {
+class MainModule(private val application: Application) {
     @Provides
     fun bindViewModelFactory(
         viewModelFactories: Map<Class<out ViewModel>,
@@ -59,9 +62,12 @@ class MainModule {
     @Provides
     fun provideNavigationManager(
         tomTomNavigation: TomTomNavigation,
-        mapManager: MapManager,
         routingManager: RoutingManager,
     ): NavigationManager {
         return NavigationManagerImpl(tomTomNavigation, routingManager)
     }
+
+    @Singleton
+    @Provides
+    fun provideContext(): Context = application
 }
