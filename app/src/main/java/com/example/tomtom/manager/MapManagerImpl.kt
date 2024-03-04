@@ -8,44 +8,40 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.ui.MapFragment
-import java.io.Closeable
 import javax.inject.Singleton
 
 @Singleton
 class MapManagerImpl(
     private val locationProvider: LocationProvider,
 ) : MapManager {
-    private var _tomTomMap: TomTomMap? = null
     private lateinit var onLocationUpdateListener: OnLocationUpdateListener
-
-    override val tomTomMap: TomTomMap?
-        get() = _tomTomMap
 
     override fun initMap(mapFragment: MapFragment, onMapReady: (TomTomMap) -> Unit) {
         mapFragment.getMapAsync { map ->
-            _tomTomMap = map
             onMapReady(map)
         }
     }
 
-    override fun enableUserLocation(activity: FragmentActivity) {
-        if (PermissionUtil.hasLocationPermissions(activity)) {
-            showUserLocation()
-        } else {
-            PermissionUtil.requestLocationPermissions(activity)
+    override fun enableUserLocation(activity: FragmentActivity, tomtomMap: TomTomMap?) {
+        tomtomMap?.let {
+            if (PermissionUtil.hasLocationPermissions(activity)) {
+                showUserLocation(it)
+            } else {
+                PermissionUtil.requestLocationPermissions(activity)
+            }
         }
     }
 
-    private fun showUserLocation() {
+    private fun showUserLocation(tomtomMap: TomTomMap) {
         locationProvider.enable()
         onLocationUpdateListener = OnLocationUpdateListener { location ->
-            tomTomMap?.moveCamera(CameraOptions(location.position, zoom = 8.0))
+            tomtomMap.moveCamera(CameraOptions(location.position, zoom = 8.0))
             locationProvider.removeOnLocationUpdateListener(onLocationUpdateListener)
         }
         locationProvider.addOnLocationUpdateListener(onLocationUpdateListener)
-        tomTomMap?.setLocationProvider(locationProvider)
+        tomtomMap.setLocationProvider(locationProvider)
         val locationMarker = LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-        tomTomMap?.enableLocationMarker(locationMarker)
+        tomtomMap.enableLocationMarker(locationMarker)
     }
 
     override fun close() {

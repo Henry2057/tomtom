@@ -52,8 +52,8 @@ class MainModule {
 
     @Singleton
     @Provides
-    fun provideRoutingManager(routePlanner: RoutePlanner, mapManager: MapManager): RoutingManager {
-        return RoutingManagerImpl(routePlanner, mapManager)
+    fun provideRoutingManager(routePlanner: RoutePlanner): RoutingManager {
+        return RoutingManagerImpl(routePlanner)
     }
 
     @Provides
@@ -62,6 +62,6 @@ class MainModule {
         mapManager: MapManager,
         routingManager: RoutingManager,
     ): NavigationManager {
-        return NavigationManagerImpl(tomTomNavigation, mapManager, routingManager)
+        return NavigationManagerImpl(tomTomNavigation, routingManager)
     }
 }

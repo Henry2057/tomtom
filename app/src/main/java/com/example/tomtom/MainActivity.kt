@@ -10,6 +10,7 @@ import com.example.tomtom.dagger.NavigationFragmentFactory
 import com.example.tomtom.dagger.SearchFragmentFactory
 import com.example.tomtom.databinding.ActivityMainBinding
 import com.example.tomtom.manager.MapManager
+import com.example.tomtom.manager.NavigationState
 import com.example.tomtom.util.PermissionUtil
 import com.example.tomtom.viewmodel.MainViewModel
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStore
@@ -18,6 +19,7 @@ import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.route.RouteClickListener
 import com.tomtom.sdk.map.display.ui.MapFragment
+import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton.VisibilityPolicy
 import com.tomtom.sdk.navigation.TomTomNavigation
 import com.tomtom.sdk.navigation.ui.NavigationFragment
@@ -77,7 +79,7 @@ class MainActivity : AppCompatActivity() {
             .commit()
 
         viewModel.initMap(mapFragment) { map ->
-            viewModel.enableUserLocation(this)
+            viewModel.enableUserLocation(this, map)
             tomTomMap = map
             setUpMapListeners()
             map.currentLocation?.let { initSearch(it.position) }
@@ -95,15 +97,25 @@ class MainActivity : AppCompatActivity() {
         viewModel.initSearch(position, searchFragment)
         viewModel.searchResults.observe(this) { placeDetails ->
             viewModel.planRoute(
-                mapManager.tomTomMap?.currentLocation?.position,
+                tomTomMap,
                 placeDetails.position
             )
             searchFragment.clear()
         }
     }
 
+    private fun observeNavigation() {
+        viewModel.navigationState.observe(this) {
+            if (it == NavigationState.NAVIGATION_STOPPED) {
+                mapFragment.currentLocationButton.visibilityPolicy =
+                    VisibilityPolicy.InvisibleWhenRecentered
+                viewModel.enableUserLocation(this, tomTomMap)
+            }
+        }
+    }
+
     private fun setUpMapListeners() {
-        mapManager.tomTomMap?.addRouteClickListener(routeClickListener)
+        tomTomMap?.addRouteClickListener(routeClickListener)
     }
 
     private fun isNavigationRunning(): Boolean = tomTomNavigation.navigationSnapshot != null
@@ -120,7 +132,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startNavigation(route: Route) {
         initNavigationFragment()
-        viewModel.startNavigation(route, navigationFragment)
+        observeNavigation()
+        viewModel.startNavigation(tomTomMap, route, navigationFragment)
     }
 
 
@@ -140,7 +153,7 @@ class MainActivity : AppCompatActivity() {
 
         PermissionUtil.handlePermissionsResult(requestCode, permissions, grantResults,
             onPermissionGranted = {
-                viewModel.enableUserLocation(this)
+                viewModel.enableUserLocation(this, tomTomMap)
             },
             onPermissionDenied = {
                 Toast.makeText(

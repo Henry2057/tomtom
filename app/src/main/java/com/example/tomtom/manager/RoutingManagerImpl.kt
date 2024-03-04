@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.route.Instruction
 import com.tomtom.sdk.map.display.route.RouteOptions
 import com.tomtom.sdk.routing.RoutePlanner
@@ -17,7 +18,6 @@ import com.tomtom.sdk.routing.options.guidance.GuidanceOptions
 import com.tomtom.sdk.routing.options.guidance.InstructionPhoneticsType
 import com.tomtom.sdk.routing.route.Route
 import com.tomtom.sdk.vehicle.Vehicle
-import java.io.Closeable
 import javax.inject.Singleton
 
 private const val ZOOM_TO_ROUTE_PADDING = 100
@@ -25,7 +25,6 @@ private var TAG = RoutingManagerImpl::class.java.simpleName
 @Singleton
 class RoutingManagerImpl(
     private val routePlanner: RoutePlanner,
-    private val mapManager: MapManager,
 ) : RoutingManager {
     private val _currentRoute = MutableLiveData<Route>()
     private val _routePlanningOptions = MutableLiveData<RoutePlanningOptions>()
@@ -35,8 +34,8 @@ class RoutingManagerImpl(
     override val routePlanningOptions: LiveData<RoutePlanningOptions>
         get() = _routePlanningOptions
 
-    override fun planRoute(origin: GeoPoint?, destination: GeoPoint) {
-        if (origin == null) return
+    override fun planRoute(tomTomMap: TomTomMap?, destination: GeoPoint) {
+        val origin = tomTomMap?.currentLocation?.position ?: return
         val itinerary = Itinerary(origin = origin, destination = destination)
         val routePlanningOptions = RoutePlanningOptions(
             itinerary = itinerary,
@@ -47,27 +46,29 @@ class RoutingManagerImpl(
             vehicle = Vehicle.Car()
         )
         _routePlanningOptions.postValue(routePlanningOptions)
-        routePlanner.planRoute(routePlanningOptions, routePlanningCallback)
+        routePlanner.planRoute(routePlanningOptions, routePlanningCallback(tomTomMap))
     }
 
-    private val routePlanningCallback = object : RoutePlanningCallback {
-        override fun onSuccess(result: RoutePlanningResponse) {
-            val route = result.routes.first()
-            _currentRoute.postValue(route)
-            drawRoute(route)
-            mapManager.tomTomMap?.zoomToRoutes(ZOOM_TO_ROUTE_PADDING)
-        }
+    private fun routePlanningCallback(tomTomMap: TomTomMap): RoutePlanningCallback {
+        return object : RoutePlanningCallback {
+            override fun onSuccess(result: RoutePlanningResponse) {
+                val route = result.routes.first()
+                _currentRoute.postValue(route)
+                drawRoute(tomTomMap, route)
+                tomTomMap.zoomToRoutes(ZOOM_TO_ROUTE_PADDING)
+            }
 
-        override fun onFailure(failure: RoutingFailure) {
-            Log.d(TAG, "onFailure: $failure")
-        }
+            override fun onFailure(failure: RoutingFailure) {
+                Log.d(TAG, "onFailure: $failure")
+            }
 
-        override fun onRoutePlanned(route: Route) {
-            Log.d(TAG, "onRoutePlanned: $route")
+            override fun onRoutePlanned(route: Route) {
+                Log.d(TAG, "onRoutePlanned: $route")
+            }
         }
     }
 
-    private fun drawRoute(route: Route) {
+    private fun drawRoute(tomTomMap: TomTomMap, route: Route) {
         Log.d(TAG, "drawRoute: ")
         val instructions = route.mapInstructions()
         val routeOptions = RouteOptions(
@@ -77,7 +78,7 @@ class RoutingManagerImpl(
             instructions = instructions,
             routeOffset = route.routePoints.map { it.routeOffset }
         )
-        mapManager.tomTomMap?.addRoute(routeOptions)
+        tomTomMap.addRoute(routeOptions)
     }
 
     private fun Route.mapInstructions(): List<Instruction> {

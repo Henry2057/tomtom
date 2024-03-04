@@ -12,7 +12,6 @@ import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.ui.MapFragment
 import com.tomtom.sdk.navigation.ui.NavigationFragment
-import com.tomtom.sdk.routing.options.RoutePlanningOptions
 import com.tomtom.sdk.routing.route.Route
 import com.tomtom.sdk.search.ui.SearchFragment
 import com.tomtom.sdk.search.ui.model.PlaceDetails
@@ -25,27 +24,23 @@ class MainViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
 ) : ViewModel() {
 
-    val tomTomMap: TomTomMap? = mapManager.tomTomMap
-
     val searchResults: LiveData<PlaceDetails> = searchManager.searchResults
 
     val currentRoute: LiveData<Route> = routingManager.currentRoute
-
-    val routePlanningOptions: LiveData<RoutePlanningOptions> = routingManager.routePlanningOptions
 
     val navigationState: LiveData<NavigationState> = navigationManager.navigationState
 
     fun initMap(mapFragment: MapFragment, onMapReady: (TomTomMap) -> Unit) = mapManager.initMap(mapFragment, onMapReady)
 
-    fun enableUserLocation(activity: FragmentActivity) = mapManager.enableUserLocation(activity)
+    fun enableUserLocation(activity: FragmentActivity, tomTomMap: TomTomMap?) = mapManager.enableUserLocation(activity, tomTomMap)
 
     fun initSearch(position: GeoPoint, fragment: SearchFragment) = searchManager.initSearch(position, fragment)
 
-    fun planRoute(origin: GeoPoint?, destination: GeoPoint) = routingManager.planRoute(origin, destination)
+    fun planRoute(tomTomMap: TomTomMap?, destination: GeoPoint) = routingManager.planRoute(tomTomMap, destination)
 
-    fun startNavigation(route: Route, navigationFragment: NavigationFragment) = navigationManager.startNavigation(route, navigationFragment )
+    fun startNavigation(tomTomMap: TomTomMap?, route: Route, navigationFragment: NavigationFragment) = navigationManager.startNavigation(tomTomMap, route, navigationFragment )
 
-    fun stopNavigation() = navigationManager.stopNavigation()
+    fun stopNavigation(tomTomMap: TomTomMap?, navigationFragment: NavigationFragment) = navigationManager.stopNavigation(tomTomMap, navigationFragment)
 
     fun close() {
         mapManager.close()

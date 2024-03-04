@@ -7,7 +7,5 @@ import java.io.Closeable
 
 interface MapManager: Closeable {
     fun initMap(mapFragment: MapFragment, onMapReady: (TomTomMap) -> Unit)
-    fun enableUserLocation(activity: FragmentActivity)
-
-    val tomTomMap: TomTomMap?
+    fun enableUserLocation(activity: FragmentActivity, tomtomMap: TomTomMap?)
 }
